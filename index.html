@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard Antrian - BPJS</title>
+
+  <style>
+    :root{
+      --bg1: #001f3f;
+      --bg2: #014c59;
+      --accent: #00d1b2; 
+      --card-bg: rgba(255,255,255,0.06);
+      --muted: rgba(255,255,255,0.72);
+    }
+
+    * { box-sizing: border-box; }
+    html,body{ height:100%; margin:0; font-family:"Poppins",system-ui,sans-serif; color:#fff; }
+    body{
+      background: linear-gradient(135deg,var(--bg1) 0%, var(--bg2) 60%, #028b78 100%);
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      padding:18px;
+    }
+
+    .wrap{ max-width:1300px; margin:0 auto; position:relative; }
+
+    .logo{
+      position:absolute; right:16px; top:12px; width:110px; opacity:0.95;
+    }
+
+    .now-serving{ display:flex; gap:20px; align-items:stretch; flex-wrap:wrap; margin-bottom:16px; }
+    .card{ background:var(--card-bg); border-radius:12px; padding:16px; box-shadow:0 8px 30px rgba(0,0,0,0.28); }
+
+    .ns-left{
+      flex:1;
+      min-width:260px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      padding:26px;
+    }
+
+    .title{
+      background: rgba(0,0,0,0.35);
+      padding:8px 16px;
+      border-radius:8px;
+      font-weight:700;
+      letter-spacing:1px;
+      color:#e8fff3;
+      margin-bottom:12px;
+      display:inline-block;
+    }
+
+    .big-number{
+      font-size:120px;
+      font-weight:900;
+      line-height:1;
+      margin:8px 0;
+      text-shadow:0 8px 24px rgba(0,0,0,0.5);
+      color:#00ffcc;
+    }
+
+    /* ✨ Ganti jadi teks “Loket 2” aja */
+    .loket-badge{
+      margin-top:20px;
+      font-size:48px;
+      font-weight:800;
+      color:#ffffff;
+      text-shadow:0 0 20px #00ffcc;
+      letter-spacing:1px;
+      text-transform:none;
+    }
+
+    .ns-right{ width:420px; min-width:260px; }
+    .ns-right h3{ margin:0 0 10px 0; color:var(--muted); font-size:16px; }
+
+    .mini-list{ display:flex; flex-direction:column; gap:10px; max-height:320px; overflow:hidden; }
+    .mini-item{ display:flex; justify-content:space-between; align-items:center; padding:12px; border-radius:10px; background: rgba(255,255,255,0.02); }
+    .mini-item .num{ font-weight:800; font-size:26px; }
+    .mini-item .meta{ color:var(--muted); font-size:13px; }
+
+    .table-wrap{ margin-top:12px; border-radius:12px; overflow:hidden; }
+    .table-scroll {
+      overflow-x:auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .table-scroll::-webkit-scrollbar{ height:0; width:0; display:none; }
+    .table-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+
+    table{ border-collapse:collapse; width:100%; min-width:720px; color:#fff; }
+    thead th{ background: rgba(255,255,255,0.04); padding:12px; text-align:left; font-weight:700; position:sticky; top:0; z-index:2; }
+    tbody td{ padding:12px; border-top:1px solid rgba(255,255,255,0.04); font-size:15px; color:#f3fff8; vertical-align:middle; }
+    tbody tr td:nth-child(3){ font-weight:800; }
+    .status-pill{ padding:6px 10px; border-radius:999px; font-weight:700; font-size:13px; background: rgba(255,255,255,0.06); color:#fff; display:inline-block; }
+
+    .footer-clock{
+      position:fixed; right:18px; bottom:18px;
+      background:rgba(0,0,0,0.35);
+      padding:10px 14px;
+      border-radius:10px;
+      font-weight:600;
+      color:#e8fff3;
+    }
+
+    @media (max-width:980px){
+      .big-number{ font-size:80px; }
+      .loket-badge{ font-size:36px; }
+      .logo{ width:90px; right:10px; top:8px; }
+      .ns-right{ width:100%; }
+      .now-serving{ flex-direction:column; }
+    }
+    @media (max-width:620px){
+      body{ padding:12px; }
+      .big-number{ font-size:64px; }
+      .loket-badge{ font-size:28px; }
+      thead th, tbody td{ font-size:13px; padding:10px; }
+      table{ min-width:640px; }
+      .mini-item .num{ font-size:22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/BPJS_Kesehatan_logo.svg/512px-BPJS_Kesehatan_logo.svg.png" alt="Logo BPJS Kesehatan">
+
+    <div class="now-serving">
+      <div class="ns-left card">
+        <div class="title">ANTRIAN DIPANGGIL</div>
+        <div id="servingNumber" class="big-number">—</div>
+        <div id="servingLoket" class="loket-badge">Loket 2</div>
+      </div>
+
+      <div class="ns-right card">
+        <h3>Daftar Panggilan Berikutnya</h3>
+        <div id="miniList" class="mini-list">
+          <div class="mini-item"><div class="num">—</div><div class="meta">Belum ada</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card table-wrap">
+      <h3 style="margin:0 0 12px 0">Daftar Antrian</h3>
+      <div class="table-scroll">
+        <table id="mainTableElement">
+          <thead>
+            <tr>
+              <th style="width:40px">#</th>
+              <th>Nama Peserta</th>
+              <th style="width:130px">Nomor</th>
+              <th>Jenis Layanan</th>
+              <th style="width:110px">Loket</th>
+              <th style="width:120px">Status</th>
+            </tr>
+          </thead>
+          <tbody id="mainTable">
+            <tr><td colspan="6" style="text-align:center;padding:28px;color:rgba(255,255,255,0.6)">Memuat...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="clock" class="footer-clock">—</div>
+
+<script>
+  const SHEET_ID = "1QFyh80w-aHftDATGmr53bQQ7hxwjBKC7MHyeCcMrV7A";
+  const BASE_OPENSHEET = "https://opensheet.elk.sh";
+  const REFRESH_MS = 10000;
+  const MAX_NEXT_CALLS = 2;
+  const MAX_TABLE_ROWS = 50;
+
+  function todaySheetName(){
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  async function fetchSheetJson(sheetName){
+    const url = `${BASE_OPENSHEET}/${SHEET_ID}/${encodeURIComponent(sheetName)}`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('Sheet not found: ' + sheetName);
+    return await res.json();
+  }
+
+  function normalizeRow(r){
+    const map = {};
+    for(const k in r) map[k.toLowerCase().trim()] = r[k];
+    return {
+      timestamp: map['timestamp'] || map['waktu'] || "",
+      nama: map['nama lengkap'] || map['nama peserta'] || map['nama'] || "",
+      nomor: map['nomor antrian'] || map['nomor'] || map['no antrian'] || "",
+      jenis: map['jenis layanan'] || map['layanan'] || map['jenis'] || "",
+      status: map['status antrian'] || map['status'] || "",
+      loket: map['loket'] || ""
+    };
+  }
+
+  function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function sortByPriority(a,b){
+    const ta = Date.parse(a.timestamp || '') || 0;
+    const tb = Date.parse(b.timestamp || '') || 0;
+    if(ta || tb) return ta - tb;
+    const na = (a.nomor||"").match(/\d+/), nb = (b.nomor||"").match(/\d+/);
+    const va = na?parseInt(na[0]):0, vb = nb?parseInt(nb[0]):0;
+    return va - vb;
+  }
+
+  function renderFromRows(rows){
+    const parsed = rows.map(normalizeRow).filter(r => r.nama || r.nomor);
+    const serving = parsed.find(r => /sedang\s*dilayani/i.test(r.status))
+                  || parsed.find(r => /sedang/i.test(r.status));
+
+    document.getElementById('servingNumber').textContent = serving ? (serving.nomor || '—') : '—';
+    document.getElementById('servingLoket').textContent = serving ? (serving.loket || '-') : '-';
+
+    const waiting = parsed.filter(r => /menunggu/i.test(r.status)).sort(sortByPriority);
+    const nextTwo = waiting.slice(0, MAX_NEXT_CALLS);
+    const miniEl = document.getElementById('miniList');
+    miniEl.innerHTML = '';
+    if(nextTwo.length === 0){
+      miniEl.innerHTML = '<div class="mini-item"><div class="num">—</div><div class="meta">Belum ada</div></div>';
+    } else {
+      nextTwo.forEach(m=>{
+        const nd = document.createElement('div');
+        nd.className = 'mini-item';
+        nd.innerHTML = `<div class="num">${escapeHtml(m.nomor)}</div><div class="meta">${escapeHtml(m.nama)} • ${escapeHtml(m.loket || '-')}</div>`;
+        miniEl.appendChild(nd);
+      });
+    }
+
+    const tbody = document.getElementById('mainTable');
+    tbody.innerHTML = '';
+    parsed.sort(sortByPriority).slice(0, MAX_TABLE_ROWS).forEach((r,i)=>{
+      const st = escapeHtml(r.status || 'Menunggu');
+      tbody.innerHTML += `
+        <tr>
+          <td>${i+1}</td>
+          <td>${escapeHtml(r.nama)}</td>
+          <td style="font-weight:800">${escapeHtml(r.nomor)}</td>
+          <td>${escapeHtml(r.jenis)}</td>
+          <td>${escapeHtml(r.loket)}</td>
+          <td><span class="status-pill">${st}</span></td>
+        </tr>`;
+    });
+  }
+
+  async function loadAndRender(){
+    try{
+      const today = todaySheetName();
+      let rows = [];
+      try{ rows = await fetchSheetJson(today); }
+      catch{ rows = await fetchSheetJson('Data Antrian'); }
+      renderFromRows(rows);
+    }catch(err){
+      document.getElementById('mainTable').innerHTML =
+        '<tr><td colspan="6" style="text-align:center;padding:28px;color:rgba(255,255,255,0.6)">Gagal memuat data</td></tr>';
+      document.getElementById('miniList').innerHTML =
+        '<div class="mini-item"><div class="num">—</div><div class="meta">Gagal memuat</div></div>';
+      document.getElementById('servingNumber').textContent = '—';
+      document.getElementById('servingLoket').textContent = '-';
+    }
+  }
+
+  function startClock(){
+    const el = document.getElementById('clock');
+    function tick(){
+      const now = new Date();
+      el.textContent = now.toLocaleString('id-ID', {
+        weekday:'short', day:'2-digit', month:'short', year:'numeric',
+        hour:'2-digit', minute:'2-digit', second:'2-digit'
+      });
+    }
+    tick();
+    setInterval(tick,1000);
+  }
+
+  loadAndRender();
+  startClock();
+  setInterval(loadAndRender, REFRESH_MS);
+</script>
+</body>
+</html>
+
